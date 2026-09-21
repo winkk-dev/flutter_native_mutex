@@ -22,7 +22,12 @@ allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+// AGP 9 defaults to built-in Kotlin, but hosts may explicitly retain KGP.
+def builtInKotlin = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger() >= 9 &&
+        providers.gradleProperty('android.builtInKotlin').getOrElse('true').toBoolean()
+if (!builtInKotlin) {
+    apply plugin: 'kotlin-android'
+}
 
 android {
     if (project.android.hasProperty("namespace")) {
@@ -36,33 +41,37 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-        test.java.srcDirs += 'src/test/kotlin'
-    }
-
     defaultConfig {
-        minSdkVersion 19
+        minSdk 19
     }
 
     dependencies {
-        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+        testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }
 
     testOptions {
         unitTests.all {
-            useJUnitPlatform()
-
             testLogging {
                events "passed", "skipped", "failed", "standardOut", "standardError"
                outputs.upToDateWhen {false}
                showStandardStreams = true
             }
+        }
+    }
+}
+
+// Read the final Java target when tasks run: hosts may override compileOptions.
+// Keep the legacy task API for consumers whose KGP predates compilerOptions.
+tasks.configureEach { task ->
+    if (task.name.startsWith('compile') && task.name.endsWith('Kotlin')) {
+        if (task.hasProperty('compilerOptions')) {
+            def jvmTargetType = task.class.classLoader.loadClass('org.jetbrains.kotlin.gradle.dsl.JvmTarget')
+            task.compilerOptions.jvmTarget.set(provider {
+                jvmTargetType.fromTarget(android.compileOptions.targetCompatibility.toString())
+            })
+        } else if (task.hasProperty('kotlinOptions')) {
+            task.kotlinOptions.jvmTarget = android.compileOptions.targetCompatibility.toString()
         }
     }
 }

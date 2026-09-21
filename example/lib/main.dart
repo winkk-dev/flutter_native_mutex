@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_native_mutex/flutter_native_mutex.dart';
 
 void main() {
@@ -36,9 +34,9 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 await _flutterNativeMutexPlugin.protect(() async {
-                  print('Critical section start');
+                  debugPrint('Critical section start');
                   await Future.delayed(const Duration(seconds: 3));
-                  print('Critical section done');
+                  debugPrint('Critical section done');
                 });
               },
               child: const Text('Lock for 3 seconds'),
@@ -46,9 +44,9 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 await _flutterNativeMutexPlugin2.protect(() async {
-                  print('Critical section start');
+                  debugPrint('Critical section start');
                   await Future.delayed(const Duration(seconds: 3));
-                  print('Critical section done');
+                  debugPrint('Critical section done');
                 });
               },
               child: const Text('Lock for 3 seconds (different mutex)'),

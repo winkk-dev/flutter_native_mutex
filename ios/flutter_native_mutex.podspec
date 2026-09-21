@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_native_mutex'
-  s.version          = '0.0.1'
+  s.version          = '0.0.2'
   s.summary          = 'A Flutter synchronization plugin which works across isolates'
   s.description      = <<-DESC
 A Flutter synchronization plugin which works across isolates
@@ -13,7 +13,7 @@ A Flutter synchronization plugin which works across isolates
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'flutter_native_mutex/Sources/flutter_native_mutex/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '11.0'
 
