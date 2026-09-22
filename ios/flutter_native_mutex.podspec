@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_native_mutex'
-  s.version          = '0.0.2'
+  s.version          = '0.0.3'
   s.summary          = 'A Flutter synchronization plugin which works across isolates'
   s.description      = <<-DESC
 A Flutter synchronization plugin which works across isolates
