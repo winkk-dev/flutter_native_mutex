@@ -5,17 +5,13 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.ArrayDeque
 
 class FlutterNativeMutexPlugin: FlutterPlugin, MethodCallHandler {
   companion object {
-    private val sharedMutexMap = ConcurrentHashMap<String, Pair<Mutex, AtomicInteger>>()
-    private val scope = CoroutineScope(Dispatchers.Default)
+    // An entry represents the current owner; its queue contains only waiting callers.
+    // Registration, handoff, and removal must use the same monitor.
+    private val sharedMutexMap = mutableMapOf<String, ArrayDeque<Result>>()
   }
 
   private lateinit var channel : MethodChannel
@@ -30,12 +26,17 @@ class FlutterNativeMutexPlugin: FlutterPlugin, MethodCallHandler {
       "lock" -> {
         val globalKey = call.argument<String>("globalKey")
         if (globalKey != null) {
-          val (mutex, count) = sharedMutexMap.getOrPut(globalKey) { Mutex() to AtomicInteger(0) }
-          count.incrementAndGet()
-          scope.launch {
-            mutex.lock()
-            result.success(null)
+          val acquired = synchronized(sharedMutexMap) {
+            val waiters = sharedMutexMap[globalKey]
+            if (waiters == null) {
+              sharedMutexMap[globalKey] = ArrayDeque()
+              true
+            } else {
+              waiters.addLast(result)
+              false
+            }
           }
+          if (acquired) result.success(null)
         } else {
           result.error("Invalid argument", "globalKey is required", null)
         }
@@ -43,15 +44,21 @@ class FlutterNativeMutexPlugin: FlutterPlugin, MethodCallHandler {
       "unlock" -> {
         val globalKey = call.argument<String>("globalKey")
         if (globalKey != null) {
-          sharedMutexMap[globalKey]?.let { (mutex, count) ->
-            scope.launch {
-              mutex.unlock()
-              if (count.decrementAndGet() <= 0) {
-                sharedMutexMap.remove(globalKey)
-              }
-              result.success(null)
+          val (wasLocked, next) = synchronized(sharedMutexMap) {
+            val waiters = sharedMutexMap[globalKey]
+            if (waiters == null) {
+              false to null
+            } else {
+              val next = waiters.pollFirst()
+              if (next == null) sharedMutexMap.remove(globalKey)
+              true to next
             }
-          } ?: run {
+          }
+          // Invoke callbacks outside the monitor so reentrant channel activity is safe.
+          if (wasLocked) {
+            next?.success(null)
+            result.success(null)
+          } else {
             result.error("Invalid argument", "mutex must be locked first", null)
           }
         } else {

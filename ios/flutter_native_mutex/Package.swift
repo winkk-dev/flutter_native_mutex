@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "flutter_native_mutex",
-    platforms: [.iOS("11.0")],
+    platforms: [.iOS("15.0")],
     products: [
         .library(name: "flutter-native-mutex", targets: ["flutter_native_mutex"])
     ],

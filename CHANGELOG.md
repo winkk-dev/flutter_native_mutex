@@ -1,3 +1,12 @@
+## 0.1.0
+
+* Require Flutter 3.47/Dart 3.13, Android API 24, and iOS 15 or newer.
+* Fix the Android lock-entry removal race with atomic registration and FIFO handoff, removing the incidental coroutine dependency.
+* Queue iOS lock callbacks without blocking a native worker thread for each waiter; invoke callbacks outside registry synchronization.
+* Remove legacy Kotlin plugin application and update the Android example to AGP 9.4.1, Gradle 9.7.1, and Kotlin 2.4.20 with Java 17 targets.
+* Replace the stale iOS platform-version test and add Android handoff, cross-instance, reuse, and concurrent acquisition coverage.
+* Remove unused example icon assets dependency and correct CocoaPods metadata.
+
 ## 0.0.3
 
 * Update examples for Flutter 3.47: AGP 9.1, Gradle 9.3.1, built-in Kotlin, Java 17, and iOS 15 with SwiftPM/UIScene.

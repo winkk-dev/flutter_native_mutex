@@ -1,15 +1,15 @@
 group 'com.winkk.flutter_native_mutex'
-version '1.0-SNAPSHOT'
+version '0.1.0'
 
 buildscript {
-    ext.kotlin_version = '2.4.0'
+    ext.kotlin_version = '2.4.20'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.1.0'
+        classpath 'com.android.tools.build:gradle:9.4.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -22,17 +22,12 @@ allprojects {
 }
 
 apply plugin: 'com.android.library'
-// AGP 9 defaults to built-in Kotlin, but hosts may explicitly retain KGP.
-def builtInKotlin = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger() >= 9 &&
-        providers.gradleProperty('android.builtInKotlin').getOrElse('true').toBoolean()
-if (!builtInKotlin) {
-    apply plugin: 'kotlin-android'
-}
 
+configurations {
+    mockitoAgent
+}
 android {
-    if (project.android.hasProperty("namespace")) {
-        namespace = 'com.winkk.flutter_native_mutex'
-    }
+    namespace = 'com.winkk.flutter_native_mutex'
 
     compileSdk 36
 
@@ -42,16 +37,18 @@ android {
     }
 
     defaultConfig {
-        minSdk 19
+        minSdk 24
     }
 
     dependencies {
         testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
         testImplementation 'org.mockito:mockito-core:5.23.0'
+        mockitoAgent('org.mockito:mockito-core:5.23.0') { transitive = false }
     }
 
     testOptions {
         unitTests.all {
+            jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
             testLogging {
                events "passed", "skipped", "failed", "standardOut", "standardError"
                outputs.upToDateWhen {false}
@@ -61,17 +58,10 @@ android {
     }
 }
 
-// Read the final Java target when tasks run: hosts may override compileOptions.
-// Keep the legacy task API for consumers whose KGP predates compilerOptions.
-tasks.configureEach { task ->
-    if (task.name.startsWith('compile') && task.name.endsWith('Kotlin')) {
-        if (task.hasProperty('compilerOptions')) {
-            def jvmTargetType = task.class.classLoader.loadClass('org.jetbrains.kotlin.gradle.dsl.JvmTarget')
-            task.compilerOptions.jvmTarget.set(provider {
-                jvmTargetType.fromTarget(android.compileOptions.targetCompatibility.toString())
-            })
-        } else if (task.hasProperty('kotlinOptions')) {
-            task.kotlinOptions.jvmTarget = android.compileOptions.targetCompatibility.toString()
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget.set(provider {
+            org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(android.compileOptions.targetCompatibility.toString())
+        })
     }
 }

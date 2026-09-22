@@ -4,18 +4,18 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_native_mutex'
-  s.version          = '0.0.3'
+  s.version          = '0.1.0'
   s.summary          = 'A Flutter synchronization plugin which works across isolates'
   s.description      = <<-DESC
 A Flutter synchronization plugin which works across isolates
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://www.winkk.com/'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'winkk' => 'https://www.winkk.com/' }
   s.source           = { :path => '.' }
   s.source_files = 'flutter_native_mutex/Sources/flutter_native_mutex/**/*.swift'
   s.dependency 'Flutter'
-  s.platform = :ios, '11.0'
+  s.platform = :ios, '15.0'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

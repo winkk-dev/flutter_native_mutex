@@ -1,13 +1,13 @@
 name: flutter_native_mutex
 description: "A Flutter synchronization plugin which works across isolates"
-version: 0.0.3
+version: 0.1.0
 homepage: https://www.winkk.com/
 repository: https://github.com/winkk-dev/flutter_native_mutex
 issue_tracker: https://github.com/winkk-dev/flutter_native_mutex/issues
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
-  flutter: '>=3.32.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 
 dependencies:
   flutter:
